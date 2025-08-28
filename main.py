@@ -1,7 +1,17 @@
 from fastapi import FastAPI
 from typing import Optional
+from pydantic import BaseModel
 
 app = FastAPI()
+
+# Type for the Users
+class User(BaseModel):
+    name: str
+    age:int
+    email:str
+    DOB: Optional[str] = None
+
+users = []
 
 @app.get('/')
 def index():
@@ -73,3 +83,13 @@ def getTitle(title:str):
     return {
         "Title": title
     }
+
+@app.post('/user')
+def addUser(user:User):
+    users.append(user)
+    return {"msg":"The users are added"}
+
+
+@app.get('/getAllUsers')
+def getAllUsers():
+    return users
