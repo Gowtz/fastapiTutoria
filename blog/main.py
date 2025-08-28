@@ -19,7 +19,13 @@ def get_db():
 
 
 @app.get('/posts')
-def getAllPost(limit:Optional[int]=10,offset:Optional[int]= 0 ,db:Session = Depends(get_db)):
+def getAllPost(response:Response,limit:Optional[int]=10,offset:Optional[int]= 0 ,db:Session = Depends(get_db)):
+    if(limit >= 50):
+        response.status_code = status.HTTP_406_NOT_ACCEPTABLE
+        return {
+            "msg":"The limit is too high. Please provide a limit less than 50"
+        }
+    
     data = db.query(models.Blog).offset(offset).limit(limit).all()
     return data
 
