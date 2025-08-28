@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from typing import Optional
 
 app = FastAPI()
 
@@ -48,7 +49,10 @@ blogs = [
 
 
 @app.get('/blogs')
-def getAllBlogs():
+def getAllBlogs(limit: Optional[int] = 10 ):
+    if limit:
+        if len(blogs) >= limit:
+            return blogs[:limit]
     return blogs
 
 @app.get('/blog/{id}')
@@ -63,6 +67,7 @@ def getBlog(id : int):
         "error":"Nothing found",
         "id":id
     }
+
 @app.get('/getTitle/{title}')
 def getTitle(title:str):
     return {
