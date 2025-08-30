@@ -46,11 +46,17 @@ def getOnePost(id:int,response:Response,db:Session = Depends(get_db)):
 # Custom Status Code
 @app.post('/newPost',status_code=status.HTTP_201_CREATED,tags=['post'])
 def createPost(post:schema.Blog ,db: Session = Depends(get_db)): # Db Connect
-    new_blog = models.Blog(title= post.title, content=post.content,author=post.author)
-    db.add(new_blog)
-    db.commit()
-    db.refresh(new_blog)
-    return new_blog
+    try: 
+        user = db.query(models.User).filter(models.User.id == post.author_id).first()
+        if not user:
+            Exception("The user not found")
+        new_blog = models.Blog(title= post.title, content=post.content,author_id =post.author_id)
+        db.add(new_blog)
+        db.commit()
+        db.refresh(new_blog)
+        return new_blog
+    except Exception as e:
+        print(f"The Error is {e}")
 
 @app.delete('/post/{id}',tags=['post'])
 def deletePost(id:int,db:Session = Depends(get_db)):
@@ -62,8 +68,8 @@ def deletePost(id:int,db:Session = Depends(get_db)):
 def updatePost(id:int,post:schema.Blog,db:Session = Depends(get_db)):
     blog = db.query(models.Blog).filter(models.Blog.id == id)
     if not blog.first():
-        raise HTTPException(status=status.HTTP_404_NOT_FOUND,detail=f"THe Blog with the id {id} not found")
-    blog.update({"title":post.title,'content':post.content,'author':post.author})
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"THe Blog with the id {id} not found")
+    blog.update({"title":post.title,'content':post.content,'author':post.author_id})
     db.commit()
     return {
         "msg":"Done",
@@ -79,6 +85,18 @@ def createNewUser(request:schema.User,db:Session = Depends(get_db)):
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
-    except:
+    except Exception as e :
+        print("The Exception is " , e)
         raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE,detail="User with this email already exists")
     return db_user
+
+@app.get('/user/{id}',response_model=schema.ShowUser,tags=['user'])
+def getUser(id:int,db:Session = Depends(get_db)):
+    try:
+        user =  db.query(models.User).filter(models.User.id == id).first()
+        return user
+    except:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail="There is something wrong inside")
+
+
+
