@@ -1,15 +1,7 @@
 from fastapi import APIRouter,HTTPException,status,Depends
-from .. import schema,models,database
+from .. import schema,models,database,hash
 from sqlalchemy.orm import Session
-from passlib.context import CryptContext
 
-pwd_context  = CryptContext(schemes=["bcrypt"],deprecated="auto")
-
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
-
-def get_password_hash(password):
-    return pwd_context.hash(password)
 
 # SetUp Router
 router = APIRouter(
@@ -19,7 +11,7 @@ router = APIRouter(
 @router.post('/user',response_model=schema.ShowUser)
 def createNewUser(request:schema.User,db:Session = Depends(database.get_db)):
     try:
-        hashPassword = get_password_hash(request.password)
+        hashPassword = hash.get_password_hash(request.password)
         db_user = models.User(name=request.name,email=request.email,password=hashPassword)
         db.add(db_user)
         db.commit()

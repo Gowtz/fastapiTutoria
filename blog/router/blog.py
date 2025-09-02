@@ -3,6 +3,7 @@ from typing import List
 from .. import schema , database, models
 from ..controller import blog
 from sqlalchemy.orm import Session
+from ..Oauth2 import get_current_user
 
 router = APIRouter(
     prefix='/blog',
@@ -13,7 +14,7 @@ router = APIRouter(
 def getAllPost(
     limit: int = Query(default=10, le=50),
     offset: int = Query(default=0, ge=0),
-    db:Session = Depends(database.get_db)
+    db:Session = Depends(database.get_db),get_current_user:schema.User = Depends(get_current_user)
 ):
     return blog.getAll(limit,offset,db)
 
